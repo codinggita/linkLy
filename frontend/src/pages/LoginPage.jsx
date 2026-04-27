@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaDropbox, FaGoogle, FaSlack } from 'react-icons/fa';
@@ -7,6 +7,13 @@ import { SiCoinbase } from 'react-icons/si';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    navigate('/dashboard');
+  };
 
   return (
     <div className="min-h-screen flex w-full font-sans">
@@ -66,7 +73,7 @@ const LoginPage = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5 text-left">
                 Email Address
@@ -133,6 +140,7 @@ const LoginPage = () => {
 
               <button
                 type="button"
+                onClick={() => navigate('/dashboard')}
                 className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all duration-200"
               >
                 <FcGoogle size={20} />
