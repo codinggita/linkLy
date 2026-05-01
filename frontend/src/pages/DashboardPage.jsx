@@ -13,7 +13,7 @@ import CompletedTask from '../components/dashboard/CompletedTask';
 const DashboardPage = () => {
   return (
     <div className="flex h-screen bg-white font-sans text-gray-900 overflow-hidden">
-      <Sidebar />
+      <Sidebar activePage="Dashboard" />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white p-8">
