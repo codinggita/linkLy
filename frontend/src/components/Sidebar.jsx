@@ -44,7 +44,7 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
       <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
         <SidebarItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={activePage === 'Dashboard'} href="/dashboard" />
         <SidebarItem icon={<Bell size={18} />} label="Notifications" active={activePage === 'Notifications'} href="/notifications" />
-        <SidebarItem icon={<StickyNote size={18} />} label="Notes" active={activePage === 'Notes'} />
+        <SidebarItem icon={<StickyNote size={18} />} label="Notes" active={activePage === 'Notes'} href="/notes" />
         <SidebarItem icon={<ClipboardList size={18} />} label="Tasks" active={activePage === 'Tasks'} />
         <SidebarItem icon={<Mail size={18} />} label="Emails" hasDropdown active={activePage === 'Emails'} />
         <SidebarItem icon={<Calendar size={18} />} label="Calendars" active={activePage === 'Calendars'} />
