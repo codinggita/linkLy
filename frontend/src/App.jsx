@@ -10,6 +10,7 @@ import TasksPage from './pages/TasksPage'
 import EmailsPage from './pages/EmailsPage'
 import CalendarPage from './pages/CalendarPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import ContactsPage from './pages/ContactsPage'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       <Route path="/emails" element={<EmailsPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/contacts" element={<ContactsPage />} />
     </Routes>
   )
 }
