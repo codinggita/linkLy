@@ -46,7 +46,7 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
         <SidebarItem icon={<Bell size={18} />} label="Notifications" active={activePage === 'Notifications'} href="/notifications" />
         <SidebarItem icon={<StickyNote size={18} />} label="Notes" active={activePage === 'Notes'} href="/notes" />
         <SidebarItem icon={<ClipboardList size={18} />} label="Tasks" active={activePage === 'Tasks'} href="/tasks" />
-        <SidebarItem icon={<Mail size={18} />} label="Emails" hasDropdown active={activePage === 'Emails'} />
+        <SidebarItem icon={<Mail size={18} />} label="Emails" hasDropdown active={activePage === 'Emails'} href="/emails" />
         <SidebarItem icon={<Calendar size={18} />} label="Calendars" active={activePage === 'Calendars'} />
 
         <div className="mt-6 mb-2 px-3">
