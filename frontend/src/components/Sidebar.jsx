@@ -59,7 +59,7 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
 
       <div className="p-3 border-t border-gray-200 flex flex-col gap-1">
 
-        <SidebarItem icon={<Settings size={18} />} label="Settings" active={activePage === 'Settings'} />
+        <SidebarItem icon={<Settings size={18} />} label="Settings" active={activePage === 'Settings'} href="/settings" />
       </div>
       
       <div className="p-4 border-t border-gray-200 flex items-center justify-between hover:bg-gray-100 cursor-pointer">

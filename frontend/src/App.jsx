@@ -11,6 +11,7 @@ import EmailsPage from './pages/EmailsPage'
 import CalendarPage from './pages/CalendarPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import ContactsPage from './pages/ContactsPage'
+import SettingsPage from './pages/SettingsPage'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/analytics" element={<AnalyticsPage />} />
       <Route path="/contacts" element={<ContactsPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
     </Routes>
   )
 }
