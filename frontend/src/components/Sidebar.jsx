@@ -52,7 +52,7 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
         <div className="mt-6 mb-2 px-3">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Database</p>
         </div>
-        <SidebarItem icon={<BarChart2 size={18} />} label="Analytics" active={activePage === 'Analytics'} />
+        <SidebarItem icon={<BarChart2 size={18} />} label="Analytics" active={activePage === 'Analytics'} href="/analytics" />
         <SidebarItem icon={<Users size={18} />} label="Contacts" active={activePage === 'Contacts'} />
 
       </div>
