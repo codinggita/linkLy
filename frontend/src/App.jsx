@@ -8,6 +8,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import NotesPage from './pages/NotesPage'
 import TasksPage from './pages/TasksPage'
 import EmailsPage from './pages/EmailsPage'
+import CalendarPage from './pages/CalendarPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/notes" element={<NotesPage />} />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/emails" element={<EmailsPage />} />
+      <Route path="/calendar" element={<CalendarPage />} />
     </Routes>
   )
 }
