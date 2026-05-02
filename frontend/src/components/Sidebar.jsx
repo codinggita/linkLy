@@ -45,7 +45,7 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
         <SidebarItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={activePage === 'Dashboard'} href="/dashboard" />
         <SidebarItem icon={<Bell size={18} />} label="Notifications" active={activePage === 'Notifications'} href="/notifications" />
         <SidebarItem icon={<StickyNote size={18} />} label="Notes" active={activePage === 'Notes'} href="/notes" />
-        <SidebarItem icon={<ClipboardList size={18} />} label="Tasks" active={activePage === 'Tasks'} />
+        <SidebarItem icon={<ClipboardList size={18} />} label="Tasks" active={activePage === 'Tasks'} href="/tasks" />
         <SidebarItem icon={<Mail size={18} />} label="Emails" hasDropdown active={activePage === 'Emails'} />
         <SidebarItem icon={<Calendar size={18} />} label="Calendars" active={activePage === 'Calendars'} />
 
@@ -54,11 +54,11 @@ const Sidebar = ({ activePage = 'Dashboard' }) => {
         </div>
         <SidebarItem icon={<BarChart2 size={18} />} label="Analytics" active={activePage === 'Analytics'} />
         <SidebarItem icon={<Users size={18} />} label="Contacts" active={activePage === 'Contacts'} />
-        <SidebarItem icon={<Briefcase size={18} />} label="Companies" active={activePage === 'Companies'} />
+
       </div>
 
       <div className="p-3 border-t border-gray-200 flex flex-col gap-1">
-        <SidebarItem icon={<Grid size={18} />} label="Integrations" active={activePage === 'Integrations'} />
+
         <SidebarItem icon={<Settings size={18} />} label="Settings" active={activePage === 'Settings'} />
       </div>
       
