@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import {
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 /* ───────────────────────────── mock data ───────────────────────────── */
-const initialNotes = [
+const notesData = [
   {
     id: 1,
     title: 'Product Team Meeting',
@@ -32,7 +32,6 @@ const initialNotes = [
     items: ['Introduction', 'Weekly Updates', 'Discussion', 'Summary and Weekly Goals'],
     date: 'Dec 4, 2019 21:42',
     hasImage: false,
-    isNew: false,
   },
   {
     id: 2,
@@ -46,7 +45,6 @@ const initialNotes = [
     bullets: ['Introduction to Newest Product Plan', 'Monthly Revenue updates for each products'],
     date: 'Nov 15, 2019 14:30',
     hasImage: false,
-    isNew: false,
   },
   {
     id: 3,
@@ -60,55 +58,14 @@ const initialNotes = [
     bullets: ['Introduction to Newest Product Plan', 'Monthly Revenue updates for each products'],
     date: 'Nov 10, 2019 09:15',
     hasImage: true,
-    isNew: false,
   },
 ];
 
-/* ───────────────────── helpers ───────────────────── */
-const formatDate = (d) => {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-};
-
 /* ───────────────────────────── component ───────────────────────────── */
 const NotesPage = () => {
-  const [notes, setNotes] = useState(initialNotes);
-  const [selectedNote, setSelectedNote] = useState(initialNotes[0]);
+  const [selectedNote, setSelectedNote] = useState(notesData[0]);
   const [fontSize, setFontSize] = useState(24);
   const [fontFamily, setFontFamily] = useState('Inter');
-  const nextId = useRef(4);
-  const titleRef = useRef(null);
-
-  /* ── Create a new blank note ── */
-  const addNote = () => {
-    const newNote = {
-      id: nextId.current++,
-      title: '',
-      tags: [],
-      items: [],
-      content: '',
-      date: formatDate(new Date()),
-      hasImage: false,
-      isNew: true,
-    };
-    setNotes((prev) => [newNote, ...prev]);
-    setSelectedNote(newNote);
-  };
-
-  /* ── Update a note in the list ── */
-  const updateNote = (id, updates) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, ...updates } : n))
-    );
-    setSelectedNote((prev) => (prev.id === id ? { ...prev, ...updates } : prev));
-  };
-
-  /* Auto-focus the title input when a new note is selected */
-  useEffect(() => {
-    if (selectedNote.isNew && titleRef.current) {
-      titleRef.current.focus();
-    }
-  }, [selectedNote.id]);
 
   return (
     <div className="flex h-screen bg-white font-sans text-gray-900 overflow-hidden">
@@ -128,7 +85,7 @@ const NotesPage = () => {
                 <Filter size={14} />
                 <span>Filter</span>
               </button>
-              <button onClick={addNote} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors">
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors">
                 <Plus size={14} />
                 <span>Add Notes</span>
               </button>
@@ -142,13 +99,13 @@ const NotesPage = () => {
               <div className="flex-1 overflow-y-auto px-4 pt-4">
                 <div className="flex items-center justify-between px-2 mb-3">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Notes</p>
-                  <button onClick={addNote} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
                     <Plus size={16} />
                   </button>
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  {notes.map((note) => (
+                  {notesData.map((note) => (
                     <NoteListItem
                       key={note.id}
                       note={note}
@@ -165,22 +122,11 @@ const NotesPage = () => {
               {/* Note Header */}
               <div className="px-8 pt-6 pb-4 border-b border-gray-200">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    {selectedNote.isNew ? (
-                      <input
-                        ref={titleRef}
-                        type="text"
-                        value={selectedNote.title}
-                        onChange={(e) => updateNote(selectedNote.id, { title: e.target.value })}
-                        placeholder="Add Title Here"
-                        className="text-xl font-bold text-gray-900 mb-1 w-full outline-none placeholder-gray-300 bg-transparent"
-                      />
-                    ) : (
-                      <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedNote.title}</h2>
-                    )}
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedNote.title}</h2>
                     <p className="text-sm text-gray-400">{selectedNote.date}</p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3">
                     {selectedNote.tags.map((tag, i) => (
                       <span
                         key={i}
@@ -259,15 +205,7 @@ const NotesPage = () => {
 
               {/* Note Content */}
               <div className="flex-1 overflow-y-auto px-8 py-6">
-                {selectedNote.isNew ? (
-                  /* ── Editable content area for new notes ── */
-                  <textarea
-                    value={selectedNote.content || ''}
-                    onChange={(e) => updateNote(selectedNote.id, { content: e.target.value })}
-                    placeholder="Start writing your note..."
-                    className="w-full h-full resize-none outline-none text-base text-gray-700 placeholder-gray-300 bg-transparent leading-relaxed"
-                  />
-                ) : selectedNote.items.length > 0 ? (
+                {selectedNote.items.length > 0 ? (
                   <div className="flex flex-col gap-5">
                     {selectedNote.items.map((item, i) => (
                       <div key={i} className="flex items-center gap-3 group">
@@ -311,11 +249,10 @@ const NotesPage = () => {
 /* ───────────────────── toolbar button ───────────────────── */
 const ToolbarButton = ({ icon, active }) => (
   <button
-    className={`p-1.5 rounded-md transition-colors ${
-      active
-        ? 'bg-gray-200 text-gray-900'
-        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-    }`}
+    className={`p-1.5 rounded-md transition-colors ${active
+      ? 'bg-gray-200 text-gray-900'
+      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+      }`}
   >
     {icon}
   </button>
@@ -326,11 +263,10 @@ const NoteListItem = ({ note, isActive, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-4 py-4 rounded-xl transition-all ${
-        isActive
-          ? 'bg-white shadow-sm border border-gray-200'
-          : 'bg-transparent hover:bg-gray-50 border border-transparent'
-      }`}
+      className={`w-full text-left px-4 py-4 rounded-xl transition-all ${isActive
+        ? 'bg-white shadow-sm border border-gray-200'
+        : 'bg-transparent hover:bg-gray-50 border border-transparent'
+        }`}
     >
       {/* Tags */}
       <div className="flex items-center gap-1.5 mb-2">
@@ -345,17 +281,7 @@ const NoteListItem = ({ note, isActive, onClick }) => {
       </div>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-900 mb-1">{note.title || 'Untitled'}</h3>
-
-      {/* Empty note preview */}
-      {note.isNew && !note.content && note.items.length === 0 && (
-        <p className="text-xs text-gray-400">No additional text</p>
-      )}
-
-      {/* Content preview for new notes with text */}
-      {note.isNew && note.content && (
-        <p className="text-xs text-gray-500 truncate">{note.content}</p>
-      )}
+      <h3 className="text-sm font-semibold text-gray-900 mb-2">{note.title}</h3>
 
       {/* Preview items (checklist) */}
       {note.items.length > 0 && (
@@ -396,5 +322,4 @@ const NoteListItem = ({ note, isActive, onClick }) => {
     </button>
   );
 };
-
 export default NotesPage;
