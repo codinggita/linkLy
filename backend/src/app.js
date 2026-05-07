@@ -4,19 +4,44 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 
+
+const allowedOrigins = [
+  'http://localhost:5173',
+];
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'https://link-ly-dusky.vercel.app',
-    'http://localhost:5173',
-  ],
+  origin: function (origin, callback) {
+
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+
   credentials: true,
 }));
+
+
+
 app.use(express.json());
 
+
 app.use('/api/auth', authRoutes);
+
+
 
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
+
 
 module.exports = app;
