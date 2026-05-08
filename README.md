@@ -4,8 +4,8 @@
 
 * **Figma Link:** [View Design](https://www.figma.com/design/e5HhR7TYnWsvpKJBo1MKde/Untitled?node-id=9-2&t=w1wdrqYahbsPpSn5-1)
 * **Live Deployed Project Link:** [LinkLy Dashboard](https://link-ly-dusky.vercel.app/)
-* **Postman Documentation Link:** [Add Postman Link Here](#)
-* **Backend Deployed Link:** [Add Backend Link Here](#)
+* **Postman Documentation Link:** [Postman Link](https://documenter.getpostman.com/view/50839173/2sBXqMKLEB)
+* **Backend Deployed Link:** [Backend Link](https://linkly-noda.onrender.com)
 * **YouTube Demo Link:** [Add YouTube Link Here](#)
 
 ---
