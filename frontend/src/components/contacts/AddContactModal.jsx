@@ -1,8 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Upload, ChevronDown, Calendar, MapPin } from 'lucide-react';
+import api from '../../services/api';
 
-const AddContactModal = ({ isOpen, onClose }) => {
+const AddContactModal = ({ isOpen, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    category: 'Employee',
+    email: '',
+    phone: '',
+    personalId: '',
+    occupation: '',
+    gender: 'male',
+    country: '',
+    city: '',
+    address: ''
+  });
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.firstName || !formData.lastName) {
+      alert("First name and Last name are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/api/contacts', {
+        name: `${formData.firstName} ${formData.lastName}`,
+        category: formData.category,
+        email: formData.email,
+        phone: formData.phone,
+        personalId: formData.personalId,
+        occupation: formData.occupation,
+        gender: formData.gender,
+        country: formData.country,
+        city: formData.city,
+        address: formData.address,
+        location: formData.city || formData.country || 'Unknown'
+      });
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Failed to create contact", error);
+      alert("Error creating contact.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px]" onClick={onClose}>
@@ -30,30 +79,29 @@ const AddContactModal = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-2 gap-4">
             {/* First Name & Last Name */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">First Name</label>
-              <input type="text" placeholder="Enter first name here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+              <label className="text-sm font-semibold text-gray-700">First Name <span className="text-red-500">*</span></label>
+              <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Enter first name here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Last Name</label>
-              <input type="text" placeholder="Enter last name here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+              <label className="text-sm font-semibold text-gray-700">Last Name <span className="text-red-500">*</span></label>
+              <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Enter last name here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
             </div>
 
             {/* Contact Categories & Email */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">Contact Categories</label>
               <div className="relative">
-                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 appearance-none outline-none focus:border-gray-400">
-                  <option>Select Category</option>
-                  <option>Employee</option>
-                  <option>Customers</option>
-                  <option>Partners</option>
+                <select name="category" value={formData.category} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 appearance-none outline-none focus:border-gray-400">
+                  <option value="Employee">Employee</option>
+                  <option value="Customers">Customers</option>
+                  <option value="Partners">Partners</option>
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">Email</label>
-              <input type="email" placeholder="Enter email here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter email here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
             </div>
 
             {/* Phone & Personal ID */}
@@ -66,12 +114,12 @@ const AddContactModal = ({ isOpen, onClose }) => {
                   </select>
                   <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
-                <input type="text" placeholder="Enter phone number" className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+                <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">Personal ID / Passport</label>
-              <input type="text" placeholder="Enter personal ID here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+              <input type="text" name="personalId" value={formData.personalId} onChange={handleChange} placeholder="Enter personal ID here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
             </div>
 
             {/* Birth Date & Occupation */}
@@ -87,7 +135,7 @@ const AddContactModal = ({ isOpen, onClose }) => {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">Occupation</label>
-              <input type="text" placeholder="Enter occupation here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+              <input type="text" name="occupation" value={formData.occupation} onChange={handleChange} placeholder="Enter occupation here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
             </div>
           </div>
 
@@ -96,11 +144,11 @@ const AddContactModal = ({ isOpen, onClose }) => {
             <label className="text-sm font-semibold text-gray-700">Gender</label>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="radio" name="gender" defaultChecked className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
+                <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleChange} className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
                 Male
               </label>
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="radio" name="gender" className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
+                <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleChange} className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
                 Female
               </label>
             </div>
@@ -115,9 +163,11 @@ const AddContactModal = ({ isOpen, onClose }) => {
                    <div className="absolute w-1/3 h-full bg-white left-1/3"></div>
                    <div className="absolute w-1/3 h-full bg-red-600 right-0"></div>
                 </div>
-                <select className="flex-1 appearance-none outline-none text-sm text-gray-600 bg-transparent">
-                  <option>Select country</option>
-                  <option>France</option>
+                <select name="country" value={formData.country} onChange={handleChange} className="flex-1 appearance-none outline-none text-sm text-gray-600 bg-transparent">
+                  <option value="">Select country</option>
+                  <option value="France">France</option>
+                  <option value="USA">USA</option>
+                  <option value="UK">UK</option>
                 </select>
                 <ChevronDown size={14} className="text-gray-400 pointer-events-none" />
               </div>
@@ -128,10 +178,7 @@ const AddContactModal = ({ isOpen, onClose }) => {
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <MapPin size={14} />
                 </div>
-                <select className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 appearance-none outline-none focus:border-gray-400">
-                  <option>Select Cities</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input type="text" name="city" value={formData.city} onChange={handleChange} placeholder="Enter City" className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
               </div>
             </div>
           </div>
@@ -139,15 +186,17 @@ const AddContactModal = ({ isOpen, onClose }) => {
           {/* Address */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-gray-700">Address</label>
-            <input type="text" placeholder="Enter address here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
+            <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter address here" className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 placeholder-gray-400" />
           </div>
 
         </div>
 
         {/* Footer */}
         <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-100">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-all">Save</button>
+          <button onClick={onClose} disabled={loading} className="flex-1 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+          <button onClick={handleSubmit} disabled={loading} className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-all disabled:opacity-50">
+            {loading ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </div>

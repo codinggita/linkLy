@@ -1,7 +1,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 
-const HighlightedCompanies = () => {
+const HighlightedCompanies = ({ totalContacts = 0 }) => {
   return (
     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center relative flex-1">
       <div className="w-full flex justify-between absolute top-5 px-5">
@@ -17,11 +17,11 @@ const HighlightedCompanies = () => {
       <h4 className="text-lg font-bold tracking-tight">Product Hunt</h4>
       <p className="text-xs text-gray-400 mt-0.5 font-medium">Web Design</p>
 
-      <h3 className="text-3xl font-bold mt-5 tracking-tight">2,241</h3>
+      <h3 className="text-3xl font-bold mt-5 tracking-tight">{totalContacts}</h3>
       <p className="text-[11px] text-gray-500 mt-1 font-medium leading-tight">
-        Total Transaction & Activities
+        Total Contacts
         <br />
-        in Last Month
+        in Database
       </p>
 
       <div className="flex items-end gap-[3px] mt-auto pt-6 w-full h-[70px] justify-center">

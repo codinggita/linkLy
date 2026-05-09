@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import CalendarViewTabs from '../components/calendar/CalendarViewTabs';
@@ -7,6 +7,7 @@ import WeeklyView from '../components/calendar/WeeklyView';
 import DailyView from '../components/calendar/DailyView';
 import AddEventModal from '../components/calendar/AddEventModal';
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, Filter } from 'lucide-react';
+import api from '../services/api';
 
 /* ── helpers ── */
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -23,46 +24,91 @@ const formatWeekRange = (ws) => {
   return `${MONTHS[ws.getMonth()]} ${ws.getDate()} - ${we.getDate()}, ${ws.getFullYear()}`;
 };
 
-/* ── mock events ── */
-const monthlyEvents = [
-  { day: 3, title: 'Meeting', colorClass: 'bg-amber-100 text-amber-700' },
-  { day: 3, title: 'New Deals', colorClass: 'bg-amber-100 text-amber-700' },
-  { day: 7, title: 'Design Review', colorClass: 'bg-emerald-100 text-emerald-700' },
-  { day: 10, title: 'Discussion', colorClass: 'bg-pink-100 text-pink-700' },
-  { day: 14, title: 'Meeting', colorClass: 'bg-amber-100 text-amber-700' },
-  { day: 14, title: 'New Deals', colorClass: 'bg-amber-100 text-amber-700' },
-  { day: 14, title: 'Discussion', colorClass: 'bg-pink-100 text-pink-700' },
-  { day: 20, title: 'Sprint Review', colorClass: 'bg-blue-100 text-blue-700' },
-  { day: 25, title: 'Team Standup', colorClass: 'bg-violet-100 text-violet-700' },
-  { day: 28, title: 'Design Review', colorClass: 'bg-emerald-100 text-emerald-700' },
-];
-
-const weeklyEvents = [
-  { dayOfWeek: 3, title: 'Meeting', start: '08:00', end: '09:30', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { dayOfWeek: 3, title: 'New Deals', start: '09:30', end: '11:00', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { dayOfWeek: 3, title: 'Discussion', start: '10:30', end: '13:00', bgClass: 'bg-pink-50 border border-pink-200', textClass: 'text-pink-700' },
-  { dayOfWeek: 5, title: 'Meeting', start: '09:00', end: '10:00', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { dayOfWeek: 5, title: 'New Deals', start: '10:00', end: '10:30', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { dayOfWeek: 5, title: 'Discussion', start: '10:00', end: '11:00', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { dayOfWeek: 5, title: 'Design Review', start: '12:00', end: '13:30', bgClass: 'bg-emerald-50 border border-emerald-200', textClass: 'text-emerald-700' },
-];
-
-const dailyEvents = [
-  { title: 'Meeting', start: '08:00', end: '11:30', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { title: 'New Deals', start: '09:30', end: '11:00', bgClass: 'bg-amber-50 border border-amber-200', textClass: 'text-amber-700' },
-  { title: 'Discussion', start: '10:30', end: '13:00', bgClass: 'bg-pink-50 border border-pink-200', textClass: 'text-pink-700' },
-];
+const colorMap = {
+  amber: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' },
+  pink: { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-200' },
+  blue: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+  violet: { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-200' }
+};
 
 /* ── page ── */
 const CalendarPage = () => {
   const [view, setView] = useState('monthly');
   const [showModal, setShowModal] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(now);
   const [weekStart, setWeekStart] = useState(getWeekStart(now));
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/events');
+      setEvents(response.data);
+    } catch (error) {
+      console.error('Failed to fetch events', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  /* Filter events for views */
+  const monthlyEvents = events
+    .filter(ev => {
+      const d = new Date(ev.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    })
+    .map(ev => {
+      const d = new Date(ev.date);
+      const c = colorMap[ev.colorPreset] || colorMap.amber;
+      return { day: d.getDate(), title: ev.title, colorClass: `${c.bg} ${c.text}` };
+    });
+
+  const weeklyEvents = events
+    .filter(ev => {
+      const d = new Date(ev.date);
+      const ws = new Date(weekStart);
+      const we = new Date(ws);
+      we.setDate(we.getDate() + 6);
+      return d >= ws && d <= we;
+    })
+    .map(ev => {
+      const d = new Date(ev.date);
+      const c = colorMap[ev.colorPreset] || colorMap.amber;
+      return { 
+        dayOfWeek: d.getDay(), 
+        title: ev.title, 
+        start: ev.startTime, 
+        end: ev.endTime, 
+        bgClass: `${c.bg} border ${c.border}`, 
+        textClass: c.text 
+      };
+    });
+
+  const dailyEvents = events
+    .filter(ev => {
+      const d = new Date(ev.date);
+      return d.toDateString() === selectedDate.toDateString();
+    })
+    .map(ev => {
+      const c = colorMap[ev.colorPreset] || colorMap.amber;
+      return { 
+        title: ev.title, 
+        start: ev.startTime, 
+        end: ev.endTime, 
+        bgClass: `${c.bg} border ${c.border}`, 
+        textClass: c.text 
+      };
+    });
 
   /* navigation */
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
@@ -117,6 +163,17 @@ const CalendarPage = () => {
     );
   };
 
+  const handleCreateEvent = async (eventData) => {
+    try {
+      await api.post('/api/events', eventData);
+      fetchEvents();
+      setShowModal(false);
+    } catch (error) {
+      console.error('Failed to create event', error);
+      alert('Error creating event');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-white font-sans text-gray-900 overflow-hidden">
       <Sidebar activePage="Calendars" />
@@ -144,21 +201,33 @@ const CalendarPage = () => {
 
           {/* Calendar View */}
           <div className="flex-1 overflow-hidden px-8 pb-6 flex flex-col">
-            {view === 'monthly' && (
-              <MonthlyView
-                year={year}
-                month={month}
-                events={monthlyEvents}
-                onDayClick={(day) => { setSelectedDate(new Date(year, month, day)); setView('daily'); }}
-              />
+            {loading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <>
+                {view === 'monthly' && (
+                  <MonthlyView
+                    year={year}
+                    month={month}
+                    events={monthlyEvents}
+                    onDayClick={(day) => { setSelectedDate(new Date(year, month, day)); setView('daily'); }}
+                  />
+                )}
+                {view === 'weekly' && <WeeklyView weekStart={weekStart} events={weeklyEvents} />}
+                {view === 'daily' && <DailyView date={selectedDate} events={dailyEvents} />}
+              </>
             )}
-            {view === 'weekly' && <WeeklyView weekStart={weekStart} events={weeklyEvents} />}
-            {view === 'daily' && <DailyView date={selectedDate} events={dailyEvents} />}
           </div>
         </main>
       </div>
 
-      <AddEventModal isOpen={showModal} onClose={() => setShowModal(false)} onCreate={(ev) => console.log('New event:', ev)} />
+      <AddEventModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+        onCreate={handleCreateEvent} 
+      />
     </div>
   );
 };

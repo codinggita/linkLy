@@ -1,6 +1,17 @@
+import React, { useContext } from 'react';
 import { Search, HelpCircle, ChevronDown } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
 
 const Topbar = () => {
+  const { user } = useContext(AuthContext);
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const displayName = user?.name || 'User';
+
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
       <div className="flex-1 max-w-md">
@@ -25,12 +36,10 @@ const Topbar = () => {
         </button>
         
         <button className="flex items-center gap-2 hover:opacity-80">
-          <img 
-            src="https://ui-avatars.com/api/?name=Brian+F&background=random" 
-            alt="Brian F." 
-            className="w-8 h-8 rounded-full border border-gray-200"
-          />
-          <span className="text-sm font-medium text-gray-700">Brian F.</span>
+          <div className="w-8 h-8 rounded-full border border-gray-200 bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">
+            {getInitials(displayName)}
+          </div>
+          <span className="text-sm font-medium text-gray-700">{displayName}</span>
           <ChevronDown size={16} className="text-gray-500" />
         </button>
       </div>

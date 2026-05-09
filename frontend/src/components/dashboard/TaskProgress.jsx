@@ -1,7 +1,9 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
-const TaskProgress = () => {
+const TaskProgress = ({ progress = 0, completed = 0, total = 0 }) => {
+  const strokeDasharray = `${progress}, 100`;
+
   return (
     <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
       <div className="relative w-[84px] h-[84px] flex-shrink-0">
@@ -15,7 +17,7 @@ const TaskProgress = () => {
           />
           <path
             className="text-black"
-            strokeDasharray="64, 100"
+            strokeDasharray={strokeDasharray}
             strokeWidth="5"
             strokeLinecap="round"
             stroke="currentColor"
@@ -24,7 +26,7 @@ const TaskProgress = () => {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-bold">64%</span>
+          <span className="text-sm font-bold">{progress}%</span>
         </div>
       </div>
       <div className="flex-1 ml-5">
@@ -34,7 +36,7 @@ const TaskProgress = () => {
             <ChevronRight size={16} />
           </button>
         </div>
-        <h3 className="text-2xl font-bold mt-1 tracking-tight">137/236</h3>
+        <h3 className="text-2xl font-bold mt-1 tracking-tight">{completed}/{total}</h3>
         <p className="text-xs text-gray-400 mt-1 font-medium">This Month</p>
       </div>
     </div>

@@ -3,9 +3,22 @@ import { X, Calendar, Clock, Plus, MapPin, ChevronDown, ImageIcon } from 'lucide
 
 const MAX_DESC = 50;
 
+const PRESETS = ['amber', 'emerald', 'pink', 'blue', 'violet'];
+const PRESET_CLASSES = {
+  amber: 'bg-amber-500',
+  emerald: 'bg-emerald-500',
+  pink: 'bg-pink-500',
+  blue: 'bg-blue-500',
+  violet: 'bg-violet-500',
+};
+
 const AddEventModal = ({ isOpen, onClose, onCreate }) => {
   const [title, setTitle] = useState('');
-  const [color, setColor] = useState('bg-blue-500');
+  const [colorPreset, setColorPreset] = useState('blue');
+  const [showColorMenu, setShowColorMenu] = useState(false);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [description, setDescription] = useState('');
   const [notifyMe, setNotifyMe] = useState(true);
   const [notifyMin, setNotifyMin] = useState('30');
@@ -14,11 +27,25 @@ const AddEventModal = ({ isOpen, onClose, onCreate }) => {
 
   if (!isOpen) return null;
 
-  const reset = () => { setTitle(''); setDescription(''); setFileName(''); };
+  const reset = () => { 
+    setTitle(''); 
+    setDescription(''); 
+    setFileName('');
+    setDate(new Date().toISOString().split('T')[0]);
+    setStartTime('09:00');
+    setEndTime('10:00');
+  };
 
   const handleSave = () => {
-    if (!title.trim()) return;
-    onCreate?.({ title: title.trim(), description, color });
+    if (!title.trim() || !date) return;
+    onCreate?.({ 
+      title: title.trim(), 
+      description, 
+      colorPreset,
+      date,
+      startTime,
+      endTime
+    });
     reset();
     onClose();
   };
@@ -47,10 +74,24 @@ const AddEventModal = ({ isOpen, onClose, onCreate }) => {
             <div className="flex items-center gap-2">
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter event name here" className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors placeholder-gray-400" />
               <div className="relative">
-                <button className="flex items-center gap-1 px-2 py-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                  <div className={`w-4 h-4 rounded-full ${color}`} />
+                <button 
+                  onClick={() => setShowColorMenu(!showColorMenu)}
+                  className="flex items-center gap-1 px-2 py-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                >
+                  <div className={`w-4 h-4 rounded-full ${PRESET_CLASSES[colorPreset]}`} />
                   <ChevronDown size={12} className="text-gray-400" />
                 </button>
+                {showColorMenu && (
+                  <div className="absolute top-full right-0 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg flex gap-2 z-10">
+                    {PRESETS.map(p => (
+                      <button 
+                        key={p} 
+                        onClick={() => { setColorPreset(p); setShowColorMenu(false); }}
+                        className={`w-5 h-5 rounded-full ${PRESET_CLASSES[p]} hover:ring-2 hover:ring-offset-1 hover:ring-gray-300`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -59,16 +100,34 @@ const AddEventModal = ({ isOpen, onClose, onCreate }) => {
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-gray-700">Select Time</label>
             <div className="flex items-center gap-2 flex-wrap">
-              <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 hover:border-gray-300 transition-colors">
-                <Calendar size={14} /> Select Event Day <ChevronDown size={12} />
-              </button>
-              <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 hover:border-gray-300 transition-colors">
-                <Clock size={14} /> Start <ChevronDown size={12} />
-              </button>
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:border-gray-300 transition-colors">
+                <Calendar size={14} className="text-gray-400" />
+                <input 
+                  type="date" 
+                  value={date} 
+                  onChange={(e) => setDate(e.target.value)}
+                  className="outline-none text-gray-700 bg-transparent"
+                />
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:border-gray-300 transition-colors">
+                <Clock size={14} className="text-gray-400" /> 
+                <input 
+                  type="time" 
+                  value={startTime} 
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="outline-none text-gray-700 bg-transparent"
+                />
+              </div>
               <span className="text-sm text-gray-400">to</span>
-              <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 hover:border-gray-300 transition-colors">
-                <Clock size={14} /> End <ChevronDown size={12} />
-              </button>
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:border-gray-300 transition-colors">
+                <Clock size={14} className="text-gray-400" /> 
+                <input 
+                  type="time" 
+                  value={endTime} 
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="outline-none text-gray-700 bg-transparent"
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3 mt-1">
               <label className="flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer">
@@ -134,7 +193,7 @@ const AddEventModal = ({ isOpen, onClose, onCreate }) => {
         {/* Footer */}
         <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-100">
           <button onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-          <button onClick={handleSave} disabled={!title.trim()} className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Save</button>
+          <button onClick={handleSave} disabled={!title.trim() || !date} className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Save</button>
         </div>
       </div>
     </div>
