@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import {
@@ -10,91 +10,53 @@ import {
   Settings2,
   MoreVertical,
 } from 'lucide-react';
-
-/* ───────────────────────────── mock data ───────────────────────────── */
-const notifications = [
-  {
-    id: 1,
-    type: 'mention',
-    user: 'Frank Edward',
-    avatar: 'https://ui-avatars.com/api/?name=Frank+Edward&background=E8D5B7&color=5C4033&bold=true',
-    action: 'mentioned you in a comment in',
-    target: 'Design Team Reports',
-    quote: '@brianf have you update this design so we can use it on next meeting?',
-    time: '3 hours ago',
-    team: 'Design Team',
-    unread: true,
-  },
-  {
-    id: 2,
-    type: 'access',
-    user: 'Elsa Wright',
-    avatar: 'https://ui-avatars.com/api/?name=Elsa+Wright&background=C7D2FE&color=3730A3&bold=true',
-    action: 'Asking for edit access in',
-    target: 'Monthly Team Progress',
-    time: 'Yesterday',
-    team: 'Marketing Team',
-    unread: true,
-  },
-  {
-    id: 3,
-    type: 'change',
-    user: 'James Wong',
-    avatar: 'https://ui-avatars.com/api/?name=James+Wong&background=FDE68A&color=92400E&bold=true',
-    action: 'Changed the due date of',
-    target: 'Monthly Team Meeting',
-    extra: 'to Sep 12',
-    time: 'Aug 24',
-    team: 'Design Team',
-    unread: false,
-  },
-  {
-    id: 4,
-    type: 'mention',
-    user: 'James Wong',
-    avatar: 'https://ui-avatars.com/api/?name=James+Wong&background=FDE68A&color=92400E&bold=true',
-    action: 'mentioned you in a comment in',
-    target: 'Monthly Team Meeting',
-    quote: "@brianf let's we plan all this event by now",
-    time: 'Aug 24',
-    team: 'Design Team',
-    unread: false,
-  },
-  {
-    id: 5,
-    type: 'change',
-    user: 'James Wong',
-    avatar: 'https://ui-avatars.com/api/?name=James+Wong&background=FDE68A&color=92400E&bold=true',
-    action: 'Changed the due date of',
-    target: 'Monthly Team Meeting',
-    extra: 'to Sep 12',
-    time: 'Aug 24',
-    team: 'Design Team',
-    unread: false,
-  },
-  {
-    id: 6,
-    type: 'created',
-    user: 'James Wong',
-    avatar: 'https://ui-avatars.com/api/?name=James+Wong&background=FDE68A&color=92400E&bold=true',
-    action: 'Created new task on Upcoming Projects',
-    target: 'Monthly Team Meeting',
-    time: 'Aug 24',
-    team: 'Design Team',
-    unread: false,
-  },
-];
-
-/* ───────────────────────────── tabs ───────────────────────────── */
-const tabs = [
-  { label: 'All', icon: <Bell size={15} />, count: 12 },
-  { label: 'Tasks', icon: <ClipboardList size={15} />, count: null },
-  { label: 'Archived', icon: <Archive size={15} />, count: null },
-];
+import api from '../services/api';
 
 /* ───────────────────────────── component ───────────────────────────── */
 const NotificationsPage = () => {
   const [activeTab, setActiveTab] = useState('All');
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/notifications');
+      
+      const transformedNotifications = response.data.map((notification) => ({
+        id: notification._id,
+        type: notification.type,
+        user: notification.fromUser,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(notification.fromUser)}&background=random&color=fff&bold=true`,
+        action: notification.action,
+        target: notification.target,
+        extra: notification.extra,
+        quote: notification.quote,
+        time: new Date(notification.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        team: notification.team,
+        unread: notification.unread,
+      }));
+
+      setNotifications(transformedNotifications);
+    } catch (error) {
+      console.error('Failed to fetch notifications', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // Compute unread count for tabs
+  const unreadCount = notifications.filter(n => n.unread).length;
+  
+  const tabs = [
+    { label: 'All', icon: <Bell size={15} />, count: unreadCount > 0 ? unreadCount : null },
+    { label: 'Tasks', icon: <ClipboardList size={15} />, count: null },
+    { label: 'Archived', icon: <Archive size={15} />, count: null },
+  ];
 
   return (
     <div className="flex h-screen bg-white font-sans text-gray-900 overflow-hidden">
@@ -152,9 +114,19 @@ const NotificationsPage = () => {
 
             {/* ── Notification List ── */}
             <div className="divide-y divide-gray-100">
-              {notifications.map((n) => (
-                <NotificationItem key={n.id} {...n} />
-              ))}
+              {loading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : notifications.length > 0 ? (
+                notifications.map((n) => (
+                  <NotificationItem key={n.id} {...n} />
+                ))
+              ) : (
+                <div className="py-12 text-center text-gray-500">
+                  <p>No notifications found.</p>
+                </div>
+              )}
             </div>
           </div>
         </main>
@@ -219,8 +191,8 @@ const NotificationItem = ({
         {quote && (
           <div className="mt-2.5 pl-3 border-l-2 border-gray-200 py-1">
             <p className="text-sm text-gray-500">
-              <span className="font-semibold text-blue-600">@brianf</span>{' '}
-              {quote.replace('@brianf ', '')}
+              <span className="font-semibold text-blue-600">@me</span>{' '}
+              {quote}
             </p>
           </div>
         )}
@@ -246,7 +218,7 @@ const NotificationItem = ({
 
         {/* meta */}
         <p className="mt-2 text-xs text-gray-400">
-          {time} <span className="mx-1">|</span> {team}
+          {time} {team && <><span className="mx-1">|</span> {team}</>}
         </p>
       </div>
 

@@ -1,30 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ViewTabs from '../components/tasks/ViewTabs';
 import TaskSection from '../components/tasks/TaskSection';
 import AddTaskModal from '../components/tasks/AddTaskModal';
 import { Plus, SlidersHorizontal, Filter } from 'lucide-react';
-
-/* ───────────────────────────── mock data ───────────────────────────── */
-const initialTasks = {
-  planned: [
-    { id: 1, title: 'Redesign landing page hero section', priority: 'high', assignee: 'Brian F.', dueDate: 'May 5, 2026', tags: [{ label: 'Design', color: 'bg-violet-100 text-violet-700' }] },
-    { id: 2, title: 'Set up analytics tracking for dashboard', priority: 'medium', assignee: 'Sarah K.', dueDate: 'May 8, 2026', tags: [{ label: 'Dev', color: 'bg-blue-100 text-blue-700' }] },
-    { id: 3, title: 'Write onboarding email sequence', priority: 'low', assignee: 'Mike R.', dueDate: 'May 12, 2026', tags: [{ label: 'Marketing', color: 'bg-amber-100 text-amber-700' }] },
-  ],
-  upcoming: [
-    { id: 4, title: 'Create user personas for Q3 campaign', priority: 'medium', assignee: 'Anna L.', dueDate: 'May 15, 2026', tags: [{ label: 'Research', color: 'bg-emerald-100 text-emerald-700' }] },
-    { id: 5, title: 'Audit current API endpoints', priority: 'high', assignee: 'Brian F.', dueDate: 'May 18, 2026', tags: [{ label: 'Dev', color: 'bg-blue-100 text-blue-700' }] },
-    { id: 6, title: 'Prepare monthly report slides', priority: 'low', assignee: 'Sarah K.', dueDate: 'May 20, 2026', tags: [{ label: 'Product', color: 'bg-pink-100 text-pink-700' }] },
-    { id: 7, title: 'Review competitor pricing pages', priority: 'medium', assignee: 'Mike R.', dueDate: 'May 22, 2026', tags: [{ label: 'Research', color: 'bg-emerald-100 text-emerald-700' }] },
-    { id: 8, title: 'Design notification system mockups', priority: 'high', assignee: 'Anna L.', dueDate: 'May 25, 2026', tags: [{ label: 'Design', color: 'bg-violet-100 text-violet-700' }] },
-  ],
-  completed: [
-    { id: 9, title: 'Fix responsive layout issues on mobile', priority: 'high', assignee: 'Brian F.', dueDate: 'Apr 28, 2026', tags: [{ label: 'Dev', color: 'bg-blue-100 text-blue-700' }], completedAt: 'Apr 28, 2026' },
-    { id: 10, title: 'Update brand guidelines document', priority: 'medium', assignee: 'Sarah K.', dueDate: 'Apr 25, 2026', tags: [{ label: 'Design', color: 'bg-violet-100 text-violet-700' }], completedAt: 'Apr 26, 2026' },
-  ],
-};
+import api from '../services/api';
 
 const sectionConfig = {
   planned: { dot: 'bg-amber-400', label: 'Planned' },
@@ -32,40 +13,53 @@ const sectionConfig = {
   completed: { dot: 'bg-emerald-500', label: 'Completed' },
 };
 
-/* ───────────────────────────── page ───────────────────────────── */
 const TasksPage = () => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState({ planned: [], upcoming: [], completed: [] });
   const [activeView, setActiveView] = useState('list');
   const [collapsedSections, setCollapsedSections] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const nextId = useRef(11);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/tasks');
+      setTasks(response.data);
+    } catch (error) {
+      console.error('Failed to fetch tasks', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   const toggleSection = (key) =>
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const completeTask = (section, taskId) => {
+  const completeTask = async (section, taskId) => {
     if (section === 'completed') return;
-    setTasks((prev) => {
-      const task = prev[section].find((t) => t.id === taskId);
-      if (!task) return prev;
-      return {
-        ...prev,
-        [section]: prev[section].filter((t) => t.id !== taskId),
-        completed: [{ ...task, completedAt: 'Just now' }, ...prev.completed],
-      };
-    });
+    try {
+      await api.put(`/api/tasks/${taskId}/complete`);
+      fetchTasks(); // Refresh list to reflect changes accurately
+    } catch (error) {
+      console.error('Failed to complete task', error);
+    }
   };
 
-  const handleCreateTask = ({ title }) => {
-    const newTask = {
-      id: nextId.current++,
-      title,
-      priority: 'medium',
-      assignee: 'Brian F.',
-      dueDate: 'May 10, 2026',
-      tags: [],
-    };
-    setTasks((prev) => ({ ...prev, planned: [newTask, ...prev.planned] }));
+  const handleCreateTask = async ({ title }) => {
+    try {
+      await api.post('/api/tasks', {
+        title,
+        priority: 'medium',
+        status: 'planned'
+      });
+      fetchTasks(); // Refresh list
+    } catch (error) {
+      console.error('Failed to create task', error);
+    }
   };
 
   return (
@@ -104,21 +98,27 @@ const TasksPage = () => {
 
           {/* Task List */}
           <div className="flex-1 overflow-y-auto">
-            <div className="max-w-4xl mx-auto px-8 py-6 flex flex-col gap-8">
-              {Object.entries(sectionConfig).map(([key, config]) => (
-                <TaskSection
-                  key={key}
-                  config={config}
-                  tasks={tasks[key]}
-                  count={tasks[key].length}
-                  isCollapsed={collapsedSections[key]}
-                  onToggle={() => toggleSection(key)}
-                  onNewTask={() => setShowAddModal(true)}
-                  onComplete={(taskId) => completeTask(key, taskId)}
-                  isCompleted={key === 'completed'}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-full pt-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto px-8 py-6 flex flex-col gap-8">
+                {Object.entries(sectionConfig).map(([key, config]) => (
+                  <TaskSection
+                    key={key}
+                    config={config}
+                    tasks={tasks[key] || []}
+                    count={(tasks[key] || []).length}
+                    isCollapsed={collapsedSections[key]}
+                    onToggle={() => toggleSection(key)}
+                    onNewTask={() => setShowAddModal(true)}
+                    onComplete={(taskId) => completeTask(key, taskId)}
+                    isCompleted={key === 'completed'}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>

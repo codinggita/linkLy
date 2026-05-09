@@ -1,14 +1,14 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const TaskManagementSummaries = () => {
+const TaskManagementSummaries = ({ totalTasks = 236 }) => {
   return (
     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm text-gray-500 font-medium">Task Management Summaries</p>
           <div className="flex items-center gap-2 mt-1">
-            <h3 className="text-2xl font-bold tracking-tight">236 Task</h3>
+            <h3 className="text-2xl font-bold tracking-tight">{totalTasks} Task{totalTasks !== 1 ? 's' : ''}</h3>
             <span className="bg-red-50 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center">
               <svg className="w-2.5 h-2.5 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <path d="M7 17L17 7M7 17h10M7 17V7" />

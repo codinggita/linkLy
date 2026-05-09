@@ -1,34 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ContactGridItem from '../components/contacts/ContactGridItem';
 import AddContactModal from '../components/contacts/AddContactModal';
 import ContactDetailsModal from '../components/contacts/ContactDetailsModal';
 import { List, Kanban, Table, Grid as GridIcon, SlidersHorizontal, Filter, Plus } from 'lucide-react';
-
-const mockContacts = [
-  { id: 1, name: 'Robert Fox', location: 'Austin', category: 'Employee', email: 'robertfox@example.com', phone: '(671) 555-0110', gender: 'male' },
-  { id: 2, name: 'Cody Fisher', location: 'Austin', category: 'Customers', email: 'codyfisher@example.com', phone: '(671) 555-0110', gender: 'male' },
-  { id: 3, name: 'Albert Flores', location: 'Austin', category: 'Customers', email: 'albertflores@example.com', phone: '(671) 555-0110', gender: 'female' },
-  { id: 4, name: 'Floyd Miles', location: 'Austin', category: 'Employee', email: 'floydmiles@example.com', phone: '(671) 555-0110', gender: 'male' },
-  { id: 5, name: 'Arlene McCoy', location: 'Austin', category: 'Partners', email: 'arlenecoy@example.com', phone: '(671) 555-0110', gender: 'female' },
-  { id: 6, name: 'Jenny Wilson', location: 'Austin', category: 'Customers', email: 'jennywilson@example.com', phone: '(671) 555-0110', gender: 'female' },
-  { id: 7, name: 'Jacob Jones', location: 'Austin', category: 'Partners', email: 'jacobjones@example.com', phone: '(671) 555-0110', gender: 'male' },
-  { id: 8, name: 'Wade Warren', location: 'Austin', category: 'Partners', email: 'wadewarren@example.com', phone: '(671) 555-0110', gender: 'male' },
-  { id: 9, name: 'Devon Lane', location: 'Austin', category: 'Customers', email: 'devonlane@example.com', phone: '(671) 555-0110', gender: 'female' },
-  { id: 10, name: 'Kristin Watson', location: 'Austin', category: 'Employee', email: 'kristinwatson@example.com', phone: '(671) 555-0110', gender: 'female' },
-  { id: 11, name: 'Kathryn Murphy', location: 'Austin', category: 'Customers', email: 'kathrynmurphy@example.com', phone: '(671) 555-0110', gender: 'female' },
-];
+import api from '../services/api';
 
 const categories = ['All Contacts', 'Employee', 'Partners', 'Customers'];
 
 const ContactsPage = () => {
+  const [contacts, setContacts] = useState([]);
   const [activeView, setActiveView] = useState('grid');
   const [activeCategory, setActiveCategory] = useState('All Contacts');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const filteredContacts = mockContacts.filter(c => 
+  const fetchContacts = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/contacts');
+      setContacts(response.data);
+    } catch (error) {
+      console.error('Failed to fetch contacts', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const filteredContacts = contacts.filter(c => 
     activeCategory === 'All Contacts' ? true : c.category === activeCategory
   );
 
@@ -101,21 +106,39 @@ const ContactsPage = () => {
 
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto px-8 pb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredContacts.map(contact => (
-                <ContactGridItem 
-                  key={contact.id} 
-                  contact={contact} 
-                  onClick={(c) => setSelectedContact(c)} 
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : filteredContacts.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-full text-gray-500">
+                <p>No contacts found.</p>
+                <button onClick={() => setIsAddModalOpen(true)} className="mt-4 text-emerald-600 font-medium">Add your first contact</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredContacts.map(contact => (
+                  <ContactGridItem 
+                    key={contact._id} 
+                    contact={contact} 
+                    onClick={(c) => setSelectedContact(c)} 
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
         </main>
       </div>
 
-      <AddContactModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddContactModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={() => {
+          setIsAddModalOpen(false);
+          fetchContacts();
+        }}
+      />
       
       <ContactDetailsModal 
         isOpen={!!selectedContact} 
